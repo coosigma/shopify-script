@@ -5,11 +5,11 @@ use GuzzleHttp\Client;
 class ShopifyClient
 {
     public $base_uri;
-    public $shop;
+    public $table;
     public $client;
     function __construct($apikey, $passwd, $shop)
     {
-       $this->shop = $shop; 
+        $this->table = $this->shop == 'cw-test-master'? 'product_variant_master' : 'product_variant_slave';
         $this->client = new Client([
             'base_uri' => "https://$apikey:$passwd@$shop.myshopify.com/",
             'timeout'  => 3.0,
@@ -26,7 +26,7 @@ class ShopifyClient
     // Read product data from database
     public function read_from_table($dbi)
     {
-        $table = $this->shop . '_product';
+        $table = $this->table;
         $sql = "Select * from $table";
         $result = $dbi->query($sql);
         if ($result->num_rows > 0) {
@@ -35,12 +35,25 @@ class ShopifyClient
             return [];
         }
     }
-    // Update product data into database
-    public write_to_table($dbi) {
+    // Write product data to database
+    public function write_to_table($dbi, $data) {
 
     }
+    // Update product data in database
+    public function update_table($dbi, $rows) {
+        $table = $this->table;
+        $sql = "UPDATE $table SET price = ?, inventory_level = ? WHERE id=?";
+        foreach ($rows as $row) {
+            echo "processing id: " . $row['id'];
+            if ($dbi->query($sql, $row['price'], $row['inventory_level'], $row['id']) === TRUE) {
+                echo "Record updated successfully." . $dbi->error;
+            } else {
+                echo "Error updating record: " . $dbi->error;
+            }
+        }
+   }
     // Sync master and slave
     public sync_data () {
-        
+
     }
 }
