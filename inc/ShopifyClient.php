@@ -4,12 +4,11 @@ use GuzzleHttp\Client;
 
 class ShopifyClient
 {
-    public $base_uri;
     public $table;
     public $client;
     function __construct($apikey, $passwd, $shop)
     {
-        $this->table = $this->shop == 'cw-test-master'? 'product_variant_master' : 'product_variant_slave';
+        $this->table = $shop == 'cw-test-master' ? 'product_variant_master' : 'product_variant_slave';
         $this->client = new Client([
             'base_uri' => "https://$apikey:$passwd@$shop.myshopify.com/",
             'timeout'  => 3.0,
@@ -20,14 +19,13 @@ class ShopifyClient
     {
         $url = '/admin/api/2020-07/products.json';
         $response = $this->client->request('GET', $url);
-        return json_decode($response->getBody()->getContents());
+        return json_decode($response->getBody()->getContents())->products;
     }
 
     // Read product data from database
     public function read_from_table($dbi)
     {
-        $table = $this->table;
-        $sql = "Select * from $table";
+        $sql = "Select * from $this->table";
         $result = $dbi->query($sql);
         if ($result->num_rows > 0) {
             return $result->fetch_assoc();
@@ -36,24 +34,35 @@ class ShopifyClient
         }
     }
     // Write product data to database
-    public function write_to_table($dbi, $data) {
-
-    }
-    // Update product data in database
-    public function update_table($dbi, $rows) {
-        $table = $this->table;
-        $sql = "UPDATE $table SET price = ?, inventory_level = ? WHERE id=?";
-        foreach ($rows as $row) {
-            echo "processing id: " . $row['id'];
-            if ($dbi->query($sql, $row['price'], $row['inventory_level'], $row['id']) === TRUE) {
-                echo "Record updated successfully." . $dbi->error;
-            } else {
-                echo "Error updating record: " . $dbi->error;
+    public function write_to_table($dbi, $products)
+    {
+        foreach ($products as $product) {
+            foreach ($product->variants as $variant) {
+                $sql = "INSERT INTO $this->table (id, price, sku, inventory_item_id, inventory_level) VALUES ($variant->id, $variant->price, $variant->sku, $variant->inventory_item_id, $variant->inventory_quantity)";
+                echo "processing id: " . $variant->id . "\n";
+                if ($dbi->query($sql) === TRUE) {
+                    echo "Record inserting successfully." . $dbi->error . "\n";
+                } else {
+                    echo "Error inserting record: " . $dbi->error . "\n";
+                }
             }
         }
-   }
-    // Sync master and slave
-    public sync_data () {
-
     }
+    // Update product data in database
+    public function update_table($dbi, $rows)
+    {
+        $sql = "UPDATE $this->table SET price = ?, inventory_level = ? WHERE id=?";
+        foreach ($rows as $row) {
+            echo "processing id: " . $row['id'] . "\n";
+            if ($dbi->query($sql, [$row['price'], $row['inventory_level'], $row['id']]) === TRUE) {
+                echo "Record updated successfully." . $dbi->error . "\n";
+            } else {
+                echo "Error updating record: " . $dbi->error . "\n";
+            }
+        }
+    }
+    // Sync master and slave
+    // public sync_data () {
+
+    // }
 }

@@ -8,10 +8,14 @@ $masterShop = 'cw-test-master';
 $slaveAPI = '572cd8520ad236d5afcf0cde1615625d';
 $slavePasswd = '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';
 $slaveShop = 'cw-test-slave';
-$host = 'mysql57';
-$user = 'coosigma';
-$pass = 'gqWZ92kV8wke';
-$db = 'coosigma';
+// $host = 'mysql57';
+// $user = 'coosigma';
+// $pass = 'gqWZ92kV8wke';
+// $db = 'coosigma';
+$host = 'localhost';
+$user = 'root';
+$pass = '';
+$db = 'test';
 $mysqli = new mysqli($host, $user, $pass, $db);
 if ($mysqli->connect_errno) {
     echo "Error: Failed to make a MySQL connection \n";
@@ -19,5 +23,7 @@ if ($mysqli->connect_errno) {
 }
 $masterClient = new ShopifyClient($masterAPI, $masterPasswd, $masterShop);
 $slaveClient = new ShopifyClient($slaveAPI, $slavePasswd, $slaveShop);
-$res = $masterClient->read_from_shop();
-print_r($res);
+$masterProducts = $masterClient->read_from_shop();
+$masterClient->write_to_table($mysqli, $masterProducts);
+$slaveProducts = $slaveClient->read_from_shop();
+$slaveClient->write_to_table($mysqli, $slaveProducts);
