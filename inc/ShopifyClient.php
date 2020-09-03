@@ -61,8 +61,13 @@ class ShopifyClient
             }
         }
     }
-    // Sync master and slave
-    // public sync_data () {
+    // Update products to shopify shop
+    // public function write_to_shop($products) {
 
     // }
+    // Sync master and slave
+    public function sync_data($master, $slave)
+    {
+        
+    }
 }
