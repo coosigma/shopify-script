@@ -6,9 +6,11 @@ class ShopifyClient
 {
     public $table;
     public $client;
+    public $location_id;
     function __construct($apikey, $passwd, $shop)
     {
         $this->table = $shop == 'cw-test-master' ? 'product_variant_master' : 'product_variant_slave';
+        $this->location_d = $shop == 'cw-test-master' ? 53716844710 : 54041378973;
         $this->client = new Client([
             'base_uri' => "https://$apikey:$passwd@$shop.myshopify.com/",
             'timeout'  => 3.0,
@@ -62,9 +64,35 @@ class ShopifyClient
         }
     }
     // Update products to shopify shop
-    // public function write_to_shop($products) {
-
-    // }
+    public function write_to_shop($products)
+    {
+        foreach ($products as $product) {
+            foreach ($product->variants as $variant) {
+                $url = "/admin/api/2020-07/variants/$variant->id.json";
+                $json = [
+                    "variant" => [
+                        "price" => $variant->price
+                    ]
+                ];
+                $responsePrice = $this->client->request('PUT', $url, [
+                    'json'    => $json
+                ]);
+                $url = "/admin/api/2020-07/inventory_levels/set.json";
+                $json = [
+                    "location_id" => $this->location_id,
+                    "inventory_item_id" => $variant->inventory_item_id,
+                    "available" => $variant->inventory_quantity
+                ];
+                // Todo: Cannot set the inventory info.
+                $responseInventory = $this->client->request('POST', $url, [
+                    'json'    => $json
+                ]);
+                if ($responsePrice->getBody() && $responseInventory->getBody()) {
+                    echo "Variant id: " . $variant->id . " is updated.\n";
+                }
+            }
+        }
+    }
     // Sync master and slave
     public static function overwrite_slave($master, $slave)
     {
