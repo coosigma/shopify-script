@@ -20,14 +20,14 @@ $slaveClient = new ShopifyClient($slaveAPI, $slavePasswd, $slaveShop);
 $masterProducts = $masterClient->read_from_shop();
 // Check if there is a master table in the db, if not, write one
 $masterTable = $masterClient->read_from_table($mysqli);
-if (count($masterTable) == 0) {
+if (count($masterTable) === 0) {
     $masterClient->write_to_table($mysqli, $masterProducts);
 }
 // Get product data from slave shop
 $slaveProducts = $slaveClient->read_from_shop();
-// Overwrite slave data according to master data
+// Get overwrote slave data according to master data
 $updatedSlave = ShopifyClient::overwrite_slave($masterProducts, $slaveProducts);
 // Wirte to slave shop
 $slaveClient->write_to_shop($updatedSlave);
 // Write to slave table
-$slaveClient->write_to_table($dbi, $updatedSlave);
+$slaveClient->write_to_table($mysqli, $updatedSlave);
