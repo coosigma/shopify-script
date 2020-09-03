@@ -66,8 +66,27 @@ class ShopifyClient
 
     // }
     // Sync master and slave
-    public function sync_data($master, $slave)
+    public static function overwrite_slave($master, $slave)
     {
-        
+        $skuInfo = [];
+        foreach ($master as $product) {
+            foreach ($product->variants as $variant) {
+                if (property_exists($variant, 'sku')) {
+                    $sku = $variant->sku;
+                    $skuInfo[$sku]['price'] = $variant->price;
+                    $skuInfo[$sku]['inventory_level'] = $variant->inventory_quantity;
+                }
+            }
+        }
+        foreach ($slave as $product) {
+            foreach ($product->variants as $variant) {
+                if (property_exists($variant, 'sku') && array_key_exists($variant->sku, $skuInfo)) {
+                    $sku = $variant->sku;
+                    $variant->price = $skuInfo[$sku]['price'];
+                    $variant->inventory_quantity = $skuInfo[$sku]['inventory_level'];
+                }
+            }
+        }
+        return $slave;
     }
 }

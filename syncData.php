@@ -15,6 +15,9 @@ if ($mysqli->connect_errno) {
 $masterClient = new ShopifyClient($masterAPI, $masterPasswd, $masterShop);
 $slaveClient = new ShopifyClient($slaveAPI, $slavePasswd, $slaveShop);
 $masterProducts = $masterClient->read_from_shop();
-$masterClient->write_to_table($mysqli, $masterProducts);
+// $masterClient->write_to_table($mysqli, $masterProducts);
 $slaveProducts = $slaveClient->read_from_shop();
-$slaveClient->write_to_table($mysqli, $slaveProducts);
+// $slaveClient->write_to_table($mysqli, $slaveProducts);
+print_r($slaveProducts[0]);
+$newSlave = ShopifyClient::overwrite_slave($masterProducts, $slaveProducts);
+print_r($newSlave[0]);
