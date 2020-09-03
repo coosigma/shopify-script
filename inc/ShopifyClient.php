@@ -30,7 +30,7 @@ class ShopifyClient
         $sql = "Select * from $this->table";
         $result = $dbi->query($sql);
         if ($result->num_rows > 0) {
-            return $result->fetch_assoc();
+            return $result->fetch_all();
         } else {
             return [];
         }
