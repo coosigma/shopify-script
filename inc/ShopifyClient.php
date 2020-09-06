@@ -134,4 +134,8 @@ class ShopifyClient
         }
         return $updatedSlave;
     }
+    // Get sku and and info according to inventory item id
+    public function get_skuInfo_by_inventoryID()
+    {
+    }
 }

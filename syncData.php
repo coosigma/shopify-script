@@ -27,7 +27,7 @@ if (count($masterTable) === 0) {
 $slaveProducts = $slaveClient->read_from_shop();
 // Get overwrote slave data according to master data
 $updatedSlave = ShopifyClient::overwrite_slave($masterProducts, $slaveProducts);
-// Wirte to slave shop
+// Write to slave shop
 $slaveClient->write_to_shop($updatedSlave);
 // Write to slave table
 $slaveClient->write_to_table($mysqli, $updatedSlave);
